@@ -1,0 +1,5 @@
+server:
+  address: ":8080"
+  wal_path: "./data/task-queue.wal"
+  timeout_seconds: 30
+  timeout_check_interval_seconds: 5
