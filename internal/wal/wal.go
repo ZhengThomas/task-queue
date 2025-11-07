@@ -9,9 +9,10 @@ import (
 // Simple write ahead log.
 // Stores every single action on disk so if the server dies we still know which actions to queue
 type WAL struct {
-	file *os.File
-	mu   sync.Mutex
-	path string
+	file   *os.File
+	mu     sync.Mutex
+	path   string
+	buffer *bufio.Writer
 }
 
 func NewWAL(path string) (*WAL, error) {
@@ -22,8 +23,9 @@ func NewWAL(path string) (*WAL, error) {
 	}
 
 	return &WAL{
-		file: file,
-		path: path,
+		file:   file,
+		path:   path,
+		buffer: bufio.NewWriter(file), // buffered syncs with the WAL
 	}, nil
 }
 
@@ -33,11 +35,17 @@ func (w *WAL) WriteEntry(entry string) error {
 	defer w.mu.Unlock()
 
 	_, err := w.file.WriteString(entry + "\n")
-	if err != nil {
+	return err
+}
+
+// Flush the buffer and shove it into the file
+func (w *WAL) Flush() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if err := w.buffer.Flush(); err != nil {
 		return err
 	}
-
-	// Sync to disk immediately for durability
 	return w.file.Sync()
 }
 

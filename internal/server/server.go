@@ -108,6 +108,24 @@ func (s *Server) Start(cfg *config.ServerConfig) error {
 		}
 	}()
 
+	go func() {
+		// Every 30ms, flush the buffer in the WAL and put it into the file
+		// TODO - This potentially loses 30ms of jobs in the WAL. I have decided this
+		// is not a big deal, as this increase potential throughput like 10x. Figure out
+		// a way to increase throughput without this cost, or make a more informed decision on this later
+		ticker := time.NewTicker(30 * time.Millisecond)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				s.wal.Flush()
+			case <-s.shutdown:
+				s.wal.Flush()
+				return
+			}
+		}
+	}()
+
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
