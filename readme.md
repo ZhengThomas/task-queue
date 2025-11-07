@@ -1,6 +1,6 @@
 # Distributed Task Queue
 
-A lightweight, persistent distributed task queue system similar to Celery or BullMQ, built in Go with support for multiple named queues, job acknowledgements, and automatic timeout handling.
+A lightweight, persistent distributed task queue system similar to Celery or BullMQ, built in Go with support for multiple named queues, job acknowledgements, and automatic timeout handling. It's capable of approximately 10k operations/sec
 
 ## Features
 - Multiple named queues
